@@ -78,7 +78,8 @@
     const SECTIONS = [
       { id: "us", label: "미국시장", icon: "🍅", items: [{ key: "sp", label: "S&P 500", unit: "" }, { key: "nasdaq", label: "나스닥", unit: "" }, { key: "dow", label: "다우존스", unit: "" }] },
       { id: "kr", label: "국내시장", icon: "🥔", items: [{ key: "kospi", label: "코스피", unit: "" }, { key: "kosdaq", label: "코스닥", unit: "" }] },
-      { id: "etc", label: "기타지표", icon: "🍅", items: [{ key: "usdkrw", label: "원/달러", unit: "₩" }, { key: "btc", label: "비트코인", unit: "₩" }, { key: "gold", label: "금", unit: "$" }, { key: "oil", label: "유가", unit: "$" }] }
+      { id: "etc", label: "기타지표", icon: "🍅", caution: "실시간으로 움직이는 지표라 기록 시점에 따라 실제 시세와 다를 수 있어요",
+        items: [{ key: "usdkrw", label: "원/달러", unit: "₩" }, { key: "btc", label: "비트코인", unit: "₩", note: "업비트" }, { key: "gold", label: "금", unit: "$" }, { key: "oil", label: "유가", unit: "$", note: "WTI" }] }
     ];
 
     const ALL_ITEMS = []; SECTIONS.forEach(s => ALL_ITEMS.push(...s.items));
@@ -221,6 +222,14 @@
     }
 
     // ---------- 작은 표시 컴포넌트 ----------
+    // 지표 이름 + 기준 (예: 유가 · WTI)
+    function ItemName({ it }) {
+      return <>{it.label}{it.note && <span style={{ fontWeight: 600, opacity: 0.75 }}> · {it.note}</span>}</>;
+    }
+    // 섹션 아래 주의 문구
+    function Caution({ text }) {
+      return text ? <div style={{ fontSize: 10, color: "#B09880", fontWeight: 600, marginTop: 8, lineHeight: 1.5 }}>※ {text}</div> : null;
+    }
     function ChgBadge({ chg }) {
       if (chg === null) return <span style={{ color: "#B09880", fontSize: 12 }}>–</span>;
       if (chg === 0) return <span style={{ color: "#8B6340", fontWeight: 700, fontSize: 12 }}>0.00%</span>;
@@ -312,7 +321,7 @@
       return (
         <div style={{ background: isClosed ? "#F9F5F0" : "#FBF6EF", borderRadius: 12, padding: "11px 13px", border: "1.5px solid #EDE4D8", flex: "1 1 calc(50% - 5px)", minWidth: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <span style={{ fontSize: 11, color: "#8B6340", fontWeight: 700 }}>{it.label}</span>
+            <span style={{ fontSize: 11, color: "#8B6340", fontWeight: 700 }}><ItemName it={it} /></span>
             <label style={{ display: "flex", alignItems: "center", gap: 3, cursor: "pointer", fontSize: 10, color: "#B09880" }}>
               <input type="checkbox" checked={isClosed} onChange={onToggle} style={{ accentColor: "#C0392B", width: 11, height: 11 }} /> 휴장
             </label>
@@ -401,7 +410,7 @@
 
                         return (
                           <div key={it.key} style={{ borderRadius: 12, padding: "12px 13px", border: `1.5px solid ${isClosed || isEmpty ? "#F0E8DC" : up ? "#FBDAD6" : down ? "#D6E0F0" : "#E8DDD0"}`, background: isClosed || isEmpty ? "#F9F5F0" : up ? "#FEF3F2" : down ? "#F2F5FB" : "#fff", flex: isLastOdd ? "1 1 100%" : "1 1 calc(50% - 4px)", minWidth: 0 }}>
-                            <div style={{ fontSize: 10, color: "#B09880", marginBottom: 4 }}>{it.label}</div>
+                            <div style={{ fontSize: 10, color: "#B09880", marginBottom: 4 }}><ItemName it={it} /></div>
                             <div style={{ fontSize: 15, fontWeight: 800, color: isClosed || isEmpty ? "#8B6340" : "#2C1A0E", marginBottom: 3 }}>
                               {fmtVal(shownVal, it.unit)}
                             </div>
@@ -422,6 +431,7 @@
                         );
                       })}
                     </div>
+                    <Caution text={sec.caution} />
                   </div>
                 );
               })}
@@ -501,7 +511,7 @@
       return (
         <div style={{ borderRadius: 12, padding: "11px 12px 6px", border: "1.5px solid #F0E8DC", background: "#fff", flex: full ? "1 1 100%" : "1 1 calc(50% - 4px)", minWidth: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontSize: 10, color: "#B09880", fontWeight: 600 }}>{it.label}</span>
+            <span style={{ fontSize: 10, color: "#B09880", fontWeight: 600 }}><ItemName it={it} /></span>
             <span style={{ fontSize: 11, fontWeight: 800, color: chg == null || chg === 0 ? "#B09880" : color }}>{chgText}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 6, marginTop: 2 }}>
@@ -578,6 +588,7 @@
                         <WeekCard key={it.key} it={it} sorted={sorted} days={days} recMap={recMap} full={sec.items.length % 2 === 1 && idx === sec.items.length - 1} />
                       ))}
                     </div>
+                    <Caution text={sec.caution} />
                   </div>
                 ))}
               </div>
