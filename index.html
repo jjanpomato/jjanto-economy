@@ -78,7 +78,7 @@
     const SECTIONS = [
       { id: "us", label: "미국시장", icon: "🍅", items: [{ key: "sp", label: "S&P 500", unit: "" }, { key: "nasdaq", label: "나스닥", unit: "" }, { key: "dow", label: "다우존스", unit: "" }] },
       { id: "kr", label: "국내시장", icon: "🥔", items: [{ key: "kospi", label: "코스피", unit: "" }, { key: "kosdaq", label: "코스닥", unit: "" }] },
-      { id: "etc", label: "기타지표", icon: "🍅", caution: "실시간으로 움직이는 지표라 기록 시점에 따라 실제 시세와 다를 수 있어요",
+      { id: "etc", label: "기타지표", icon: "🍅", caution: ["실시간으로 움직이는 지표라 기록 시점에 따라 실제 시세와 다를 수 있어요", "원/달러 환율은 하나은행 매매기준율 기준이에요"],
         items: [{ key: "usdkrw", label: "원/달러", unit: "₩", note: "하나은행" }, { key: "btc", label: "비트코인", unit: "₩", note: "업비트" }, { key: "gold", label: "금", unit: "$", note: "국제(온스)" }, { key: "oil", label: "유가", unit: "$", note: "WTI" }] }
     ];
 
@@ -226,9 +226,14 @@
     function ItemName({ it }) {
       return <>{it.label}{it.note && <span style={{ fontWeight: 600, opacity: 0.75 }}> · {it.note}</span>}</>;
     }
-    // 섹션 아래 주의 문구
+    // 섹션 아래 주의 문구 (여러 줄 가능)
     function Caution({ text }) {
-      return text ? <div style={{ fontSize: 10, color: "#B09880", fontWeight: 600, marginTop: 8, lineHeight: 1.5 }}>※ {text}</div> : null;
+      if (!text) return null;
+      return (
+        <div style={{ fontSize: 10, color: "#B09880", fontWeight: 600, marginTop: 8, lineHeight: 1.6 }}>
+          {[].concat(text).map(t => <div key={t}>※ {t}</div>)}
+        </div>
+      );
     }
     function ChgBadge({ chg }) {
       if (chg === null) return <span style={{ color: "#B09880", fontSize: 12 }}>–</span>;
