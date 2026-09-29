@@ -440,18 +440,20 @@
                   </div>
                 );
               })}
-            </div>
 
-            {hasVal("fng", fngVal) && (
-              <div style={{ background: "#fff", borderRadius: 16, padding: "18px", border: "1px solid #F0E8DC", marginBottom: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: "#B09880", fontWeight: 600 }}>🥔 공포 탐욕지수</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: "#C8B0A0" }}>{krBasisLabel(cur.date)}</span>
-                  {fngClosed && <span style={{ background: "#EDE4D8", color: "#8B6340", padding: "2px 6px", borderRadius: 4, fontSize: 9, fontWeight: 700 }}>휴장 · {mmdd(fngLast.date)} 기록 값</span>}
+              {/* 공포 탐욕지수: 다른 시장과 같은 카드 안에, 같은 모양의 제목으로 */}
+              {hasVal("fng", fngVal) && (
+                <div style={{ borderTop: "1px dashed #EDE4D8", paddingTop: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 18 }}>🥔</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#B09880" }}>공포 탐욕지수</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "#C8B0A0" }}>{krBasisLabel(cur.date)} · CNN</span>
+                    {fngClosed && <span style={{ background: "#EDE4D8", color: "#8B6340", padding: "2px 6px", borderRadius: 4, fontSize: 9, fontWeight: 700 }}>휴장 · {mmdd(fngLast.date)} 기록 값</span>}
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "center" }}><FearGreedGauge value={fngVal} change={fngChange} /></div>
                 </div>
-                <div style={{ display: "flex", justifyContent: "center" }}><FearGreedGauge value={fngVal} change={fngChange} /></div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* 출처 (이미지에 자동 포함) */}
             <div style={{ textAlign: "center", fontSize: 10, color: "#B09880", lineHeight: 1.7, marginTop: 2 }}>
