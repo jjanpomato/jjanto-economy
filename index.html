@@ -135,16 +135,27 @@
       if (key === "fng") return String(v ?? "").trim() !== "" && !isNaN(parseInt(v));
       return parseNum(v) !== 0;
     }
+    // 등락률(%)을 반올림하지 않은 숫자로 돌려줌 (표시할 때 pctText로 다듬음)
     function calcChg(cur, prev) {
       const c = parseNum(cur), p = parseNum(prev); if (!c || !p) return null;
-      return ((c - p) / p * 100).toFixed(2);
+      return (c - p) / p * 100;
     }
+    // 등락률 표시: 움직였지만 0.01%도 안 되면 "0.01% 미만"으로 방향만 보여줌
+    function pctText(raw) {
+      if (raw === 0) return "0.00%";
+      const arrow = raw > 0 ? "▲" : "▼";
+      if (Math.abs(raw) < 0.005) return `${arrow} 0.01% 미만`;
+      return `${arrow} ${raw > 0 ? "+" : ""}${raw.toFixed(2)}%`;
+    }
+    // 네이버증권처럼 소수 둘째 자리까지 고정 (비트코인은 백만 원 단위, 공포탐욕지수는 정수)
+    const TWO_DP = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
     function fmtVal(val, unit) {
       const n = parseNum(val); if (!n) return "–";
+      if (unit === "score") return String(Math.round(n));
       if (unit === "₩" && n > 1000000) return `₩${(n / 1000000).toFixed(2)}M`;
-      if (unit === "$") return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-      if (unit === "₩") return `₩${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-      return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+      if (unit === "$") return `$${n.toLocaleString(undefined, TWO_DP)}`;
+      if (unit === "₩") return `₩${n.toLocaleString(undefined, TWO_DP)}`;
+      return n.toLocaleString(undefined, TWO_DP);
     }
 
     // ---------- 기록 도우미 ----------
@@ -212,10 +223,8 @@
     // ---------- 작은 표시 컴포넌트 ----------
     function ChgBadge({ chg }) {
       if (chg === null) return <span style={{ color: "#B09880", fontSize: 12 }}>–</span>;
-      const num = +chg;
-      if (num === 0) return <span style={{ color: "#8B6340", fontWeight: 700, fontSize: 12 }}>0.00%</span>;
-      const up = num > 0;
-      return <span style={{ color: up ? "#C0392B" : "#3B6EA5", fontWeight: 700, fontSize: 12 }}>{up ? "▲" : "▼"} {up ? "+" : ""}{chg}%</span>;
+      if (chg === 0) return <span style={{ color: "#8B6340", fontWeight: 700, fontSize: 12 }}>0.00%</span>;
+      return <span style={{ color: chg > 0 ? "#C0392B" : "#3B6EA5", fontWeight: 700, fontSize: 12 }}>{pctText(chg)}</span>;
     }
     function MarketTag({ chg }) {
       if (chg === null || +chg === 0) return null;
@@ -451,7 +460,7 @@
     }
     function numOf(key, v) { return key === "fng" ? parseInt(v) : parseNum(v); }
 
-    const WEEK_ITEMS = [...ALL_ITEMS, { key: "fng", label: "CNN 지수", unit: "" }];
+    const WEEK_ITEMS = [...ALL_ITEMS, { key: "fng", label: "CNN 지수", unit: "score" }];
 
     function MiniTip({ active, payload, unit }) {
       if (!active || !payload?.length || payload[0].value == null) return null;
@@ -477,7 +486,7 @@
       const base = prevWeek ? { v: numOf(it.key, prevWeek.value), date: prevWeek.date } : (filled.length > 1 ? filled[0] : null);
       let chg = null;
       if (last && base && base.v) {
-        chg = it.key === "fng" ? last.v - base.v : +((last.v - base.v) / base.v * 100).toFixed(2);
+        chg = it.key === "fng" ? last.v - base.v : (last.v - base.v) / base.v * 100;
       }
       // 값이 하나뿐이거나 변화가 없어도 선이 가운데 오도록 위아래 여백
       const vals = filled.map(p => p.v);
@@ -487,7 +496,7 @@
       const color = chg == null || chg === 0 ? FLAT_COLOR : chg > 0 ? UP_COLOR : DOWN_COLOR;
       const chgText = chg == null ? "–" : it.key === "fng"
         ? `${chg > 0 ? "▲ +" : chg < 0 ? "▼ " : ""}${chg}p`
-        : `${chg > 0 ? "▲ +" : chg < 0 ? "▼ " : ""}${chg.toFixed(2)}%`;
+        : pctText(chg);
 
       return (
         <div style={{ borderRadius: 12, padding: "11px 12px 6px", border: "1.5px solid #F0E8DC", background: "#fff", flex: full ? "1 1 100%" : "1 1 calc(50% - 4px)", minWidth: 0 }}>
@@ -863,7 +872,7 @@
                       </div>
                       {fngClosed ? (
                         <div style={{ background: "#F9F5F0", borderRadius: 12, padding: "12px 14px", border: "1.5px solid #EDE4D8", textAlign: "center" }}>
-                          <ClosedInfo prevInfo={fngPrev} unit="" />
+                          <ClosedInfo prevInfo={fngPrev} unit="score" />
                         </div>
                       ) : (
                         <>
