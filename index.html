@@ -224,7 +224,8 @@
     }
 
     // CNN 공포탐욕지수 구간(0·25·45·55·75·100)과 색 구간을 똑같이 맞춤
-    function FearGreedGauge({ value }) {
+    // change: { diff, label } 가 있으면 숫자 아래에 "전일 대비 ▼ 3p"를 표시
+    function FearGreedGauge({ value, change }) {
       const info = getFng(value); if (!info) return null;
       const W = 260, H = 150, cx = 130, cy = 132, R = 100, rIn = 66;
       const toDeg = v => (v / 100) * 180;
@@ -251,6 +252,12 @@
             <span style={{ fontSize: 40, fontWeight: 800, color: "#2C1A0E", fontFamily: "Inter, sans-serif", letterSpacing: "-1px" }}>{info.value}</span>
             <span style={{ fontSize: 14, fontWeight: 700, color: "#B09880", marginLeft: 3 }}>/ 100</span>
           </div>
+          {change && (
+            <div style={{ marginTop: 8, fontSize: 13, fontWeight: 800, color: change.diff > 0 ? UP_COLOR : change.diff < 0 ? DOWN_COLOR : "#B09880" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#B09880", marginRight: 5 }}>{change.label}</span>
+              {change.diff > 0 ? `▲ ${change.diff}p 상승` : change.diff < 0 ? `▼ ${Math.abs(change.diff)}p 하락` : "변동 없음"}
+            </div>
+          )}
           <div style={{ marginTop: 8, fontSize: 13, fontWeight: 800, color: "#fff", background: info.color, padding: "4px 12px", borderRadius: 20 }}>{info.label}</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginTop: 12 }}>
             {FNG_LEVELS.map(l => (
@@ -331,6 +338,12 @@
       const fngClosed = !!cur.closed?.fng;
       const fngLast = fngClosed ? lastValueBefore(sorted, cur.date, "fng") : null;
       const fngVal = fngClosed ? fngLast?.value : cur.fng;
+      // 공포탐욕지수 전일 대비 (휴장이면 표시 안 함, 바로 전 기록이 아니면 "MM/DD 대비")
+      const fngPrev = !fngClosed && hasVal("fng", cur.fng) ? lastValueBefore(sorted, cur.date, "fng") : null;
+      const fngChange = fngPrev ? {
+        diff: parseInt(cur.fng) - parseInt(fngPrev.value),
+        label: fngPrev.date === prevRecDate ? "전일 대비" : `${mmdd(fngPrev.date)} 대비`
+      } : null;
 
       const handleDownloadImage = () => saveAsImage(captureRef.current, `경제지표_요약_${cur.date.replace(/\//g, "")}.png`);
 
@@ -412,7 +425,7 @@
                   <span style={{ fontSize: 10, fontWeight: 600, color: "#C8B0A0" }}>{krBasisLabel(cur.date)}</span>
                   {fngClosed && <span style={{ background: "#EDE4D8", color: "#8B6340", padding: "2px 6px", borderRadius: 4, fontSize: 9, fontWeight: 700 }}>휴장 · {mmdd(fngLast.date)} 기록 값</span>}
                 </div>
-                <div style={{ display: "flex", justifyContent: "center" }}><FearGreedGauge value={fngVal} /></div>
+                <div style={{ display: "flex", justifyContent: "center" }}><FearGreedGauge value={fngVal} change={fngChange} /></div>
               </div>
             )}
 
